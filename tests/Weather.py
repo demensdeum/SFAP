@@ -75,12 +75,10 @@ def ollama_parse_temperature(html_content):
         prompt = (
             f"Analyze the following text extracted from a webpage:\n"
             f"\"{chunk}\"\n\n"
-            f"Task: Find the temperature in Celsius (°C) or Fahrenheit (°F).\n"
+            f"Task: Extract all temperature readings (Celsius or Fahrenheit) from the text.\n"
             f"Rules:\n"
-            f"1. Extract the values exactly as they appear in text.\n"
-            f"2. Do NOT convert the values yourself. Only report what is written.\n"
-            f"3. Output format: 'Temperature: <value>'.\n"
-            f"4. If NO temperature data is found at all, output exactly 'NOT_FOUND'."
+            f"1. Extract the values exactly as they appear (e.g. '12°C', '72°F').\n"
+            f"2. Do NOT convert values."
         )
 
         response_str = ollama_call(
