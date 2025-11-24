@@ -5,5 +5,5 @@ class Publisher(ABC):
         print("Publisher init")
 
     @abstractmethod
-    async def fetch(self):
-        print("Publisher -> fetch")
+    async def publish(self):
+        print("Publisher -> publish")

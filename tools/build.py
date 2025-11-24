@@ -1,7 +1,13 @@
 from commands import run
+import os
 
-commands = """
-py -m mypy --python-version 3.9 .
-"""
+run("""
+py -m mypy --python-version 3.9 src/SFAP
+""")
 
-run(commands)
+os.chdir("src")
+
+run("""
+pip install -e .
+""")
+

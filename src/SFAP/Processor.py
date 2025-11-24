@@ -1,7 +1,7 @@
-from SeekerInput import SeekerInput
-from Seeker import Seeker
-from Filter import Filter
-from Publisher import Publisher
+from SFAP.SeekerInput import SeekerInput
+from SFAP.Seeker import Seeker
+from SFAP.Filter import Filter
+from SFAP.Publisher import Publisher
 
 class Processor:
     def __init__(

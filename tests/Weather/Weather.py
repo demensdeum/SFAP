@@ -12,7 +12,8 @@ from typing import List
 URL_TO_SCRAPE = sys.argv[1]
 OUTPUT_FILE = sys.argv[2]
 delay = int(sys.argv[3])
-HEADLESS = True
+HEADLESS = sys.argv[4] == "True"
+
 CHUNK_SIZE = 3000
 
 class TemperatureResponse(BaseModel):
@@ -29,22 +30,28 @@ def get_html_chunks(html_content, chunk_size):
     for i in range(0, len(clean_text), chunk_size):
         yield clean_text[i:i + chunk_size]
 
-def save_rendered_html():
+def save_rendered_html(verbose=True):
     chrome_options = Options()
     if HEADLESS:
         chrome_options.add_argument("--headless")
 
+    if verbose:
+        print(f"HEADLESS: {HEADLESS}")
+
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
-    print("Initializing Browser...")
+    if verbose:
+        print("Initializing Browser...")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
     try:
-        print(f"Loading: {URL_TO_SCRAPE}")
+        if verbose:
+            print(f"Loading: {URL_TO_SCRAPE}")
         driver.get(URL_TO_SCRAPE)
 
-        print(f"Waiting {delay} seconds for JS to finish...")
+        if verbose:
+            print(f"Waiting {delay} seconds for JS to finish...")
         time.sleep(delay)
 
         html_content = driver.page_source
@@ -52,7 +59,8 @@ def save_rendered_html():
         with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
             f.write(html_content)
 
-        print(f"Success! Saved to {OUTPUT_FILE}")
+        if verbose:
+            print(f"Success! Saved to {OUTPUT_FILE}")
 
         return html_content
 
@@ -62,15 +70,17 @@ def save_rendered_html():
     finally:
         driver.quit()
 
-def ollama_parse_temperature(html_content):
+def ollama_parse_temperature(html_content, verbose=True):
     if not html_content:
         return
 
-    print("Processing HTML in chunks...")
+    if verbose:
+        print("Processing HTML in chunks...")
 
     chunk_counter = 1
     for chunk in get_html_chunks(html_content, CHUNK_SIZE):
-        print(f"--- Analyzing Chunk {chunk_counter} ---")
+        if verbose:
+            print(f"--- Analyzing Chunk {chunk_counter} ---")
 
         prompt = (
             f"Analyze the following text extracted from a webpage:\n"
@@ -83,16 +93,18 @@ def ollama_parse_temperature(html_content):
 
         response_str = ollama_call(
             prompt,
-            format=TemperatureResponse.model_json_schema()
+            format=TemperatureResponse.model_json_schema(),
+            verbose=verbose
         )
 
-        print(f"Raw Ollama Response: {response_str}")
+        if verbose:
+            print(f"Raw Ollama Response: {response_str}")
 
         try:
             result = TemperatureResponse.model_validate_json(response_str)
 
-            if result.temperatures:
-                print(f"\n✅ Temperatures Found: {result.temperatures}")
+            if len(result.temperatures) > 0:
+                print(f"\n✅ Temperatures Found: {result.temperatures[0]}")
                 return result.model_dump()
 
         except Exception as e:
@@ -104,5 +116,6 @@ def ollama_parse_temperature(html_content):
     return {"temperatures": []}
 
 if __name__ == "__main__":
-    html_content = save_rendered_html()
-    ollama_parse_temperature(html_content)
+    verbose = False
+    html_content = save_rendered_html(verbose)
+    ollama_parse_temperature(html_content, verbose)
