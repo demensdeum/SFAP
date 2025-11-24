@@ -104,7 +104,7 @@ def ollama_parse_temperature(html_content, verbose=True):
             result = TemperatureResponse.model_validate_json(response_str)
 
             if len(result.temperatures) > 0:
-                print(f"\n✅ Temperatures Found: {result.temperatures[0]}")
+                print(f"\n✅ Temperature Found: {result.temperatures[0]}")
                 return result.model_dump()
 
         except Exception as e:
