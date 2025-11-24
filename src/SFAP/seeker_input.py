@@ -1,4 +1,4 @@
-from SFAP.PublishChannel import PublishChannel
+from .publish_channel import PublishChannel
 
 class SeekerInput:
     def __init__(self, keywords: list[str], filters: list[str], publish_channels: list[PublishChannel]):

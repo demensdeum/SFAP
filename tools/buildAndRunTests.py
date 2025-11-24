@@ -1,10 +1,10 @@
 from commands import run
 import os
 
-commands = """
-python ./tools/build.py
-python ./src/main.py
+run("""
+python ./tools/buildAndInstall.py
 """
+)
 
 os.chdir("tests")
 os.chdir("Weather")

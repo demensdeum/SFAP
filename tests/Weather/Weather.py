@@ -9,6 +9,11 @@ from bs4 import BeautifulSoup
 from pydantic import BaseModel
 from typing import List
 
+from SFAP import TerminalPublisher
+from SFAP import TerminalPublisherItem
+
+import asyncio
+
 URL_TO_SCRAPE = sys.argv[1]
 OUTPUT_FILE = sys.argv[2]
 delay = int(sys.argv[3])
@@ -70,7 +75,7 @@ def save_rendered_html(verbose=True):
     finally:
         driver.quit()
 
-def ollama_parse_temperature(html_content, verbose=True):
+async def ollama_parse_temperature(html_content, verbose=True):
     if not html_content:
         return
 
@@ -104,7 +109,9 @@ def ollama_parse_temperature(html_content, verbose=True):
             result = TemperatureResponse.model_validate_json(response_str)
 
             if len(result.temperatures) > 0:
-                print(f"\n✅ Temperature Found: {result.temperatures[0]}")
+
+                await TerminalPublisher().publish([TerminalPublisherItem(f"\n✅ Temperature Found: {result.temperatures[0]}")])
+
                 return result.model_dump()
 
         except Exception as e:
@@ -115,7 +122,10 @@ def ollama_parse_temperature(html_content, verbose=True):
     print("\n❌ No temperature data found.")
     return {"temperatures": []}
 
-if __name__ == "__main__":
+async def main():
     verbose = False
     html_content = save_rendered_html(verbose)
-    ollama_parse_temperature(html_content, verbose)
+    await ollama_parse_temperature(html_content, verbose)
+
+if __name__ == "__main__":
+    asyncio.run(main())

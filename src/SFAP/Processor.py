@@ -1,7 +1,7 @@
-from SFAP.SeekerInput import SeekerInput
-from SFAP.Seeker import Seeker
-from SFAP.Filter import Filter
-from SFAP.Publisher import Publisher
+from .seeker_input import SeekerInput
+from .seeker import Seeker
+from .filter import Filter
+from .publisher import Publisher
 
 class Processor:
     def __init__(
@@ -9,10 +9,10 @@ class Processor:
         seekers: list[Seeker],
         filters: list[Filter],
         publishers: list[Publisher]
-    ):
+    ) -> None:
         self.seekers = seekers
         self.filters = filters
         self.publishers = publishers
 
-    def start(self):
+    def start(self) -> None:
         print("start")
