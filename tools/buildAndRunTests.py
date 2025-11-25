@@ -1,16 +1,16 @@
 from commands import run
 import os
 
-commands = """
-python ./tools/build.py
-python ./src/main.py
+run("""
+python ./tools/buildAndInstall.py
 """
+)
 
 os.chdir("tests")
 os.chdir("Weather")
 
-delay = 10
-browser_headless_mode = "False"
+delay = 2
+browser_headless_mode = "True"
 
 run(f"""
 python ./Weather.py https://www.accuweather.com/ accuweather-weather.html {delay}  {browser_headless_mode}

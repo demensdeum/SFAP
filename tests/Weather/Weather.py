@@ -1,121 +1,32 @@
 import sys
-import time
-from ollama_call import ollama_call
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from bs4 import BeautifulSoup
-from pydantic import BaseModel
-from typing import List
+import asyncio
+from SFAP import Processor
+from SFAP import PassthroughFilter
+from SFAP import TerminalPublisher
+from WeatherSeeker import WeatherSeeker
+from WeatherTerminalPublisherAdapter import WeatherTerminalPublisherAdapter
 
 URL_TO_SCRAPE = sys.argv[1]
 OUTPUT_FILE = sys.argv[2]
 delay = int(sys.argv[3])
 HEADLESS = sys.argv[4] == "True"
-
 CHUNK_SIZE = 3000
+verbose = False
 
-class TemperatureResponse(BaseModel):
-    temperatures: List[str]
+async def main():
+    seeker = WeatherSeeker(
+        URL_TO_SCRAPE,
+        HEADLESS,
+        delay,
+        OUTPUT_FILE,
+        CHUNK_SIZE,
+        verbose=verbose
+    )
+    filter = PassthroughFilter()
+    adapter = WeatherTerminalPublisherAdapter()
+    publisher = TerminalPublisher()
 
-def get_html_chunks(html_content, chunk_size):
-    soup = BeautifulSoup(html_content, 'html.parser')
-
-    for redundant in soup(["script", "style", "svg", "path", "head", "meta", "noscript"]):
-        redundant.decompose()
-
-    clean_text = soup.get_text(separator="\n", strip=True)
-
-    for i in range(0, len(clean_text), chunk_size):
-        yield clean_text[i:i + chunk_size]
-
-def save_rendered_html(verbose=True):
-    chrome_options = Options()
-    if HEADLESS:
-        chrome_options.add_argument("--headless")
-
-    if verbose:
-        print(f"HEADLESS: {HEADLESS}")
-
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-
-    if verbose:
-        print("Initializing Browser...")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-
-    try:
-        if verbose:
-            print(f"Loading: {URL_TO_SCRAPE}")
-        driver.get(URL_TO_SCRAPE)
-
-        if verbose:
-            print(f"Waiting {delay} seconds for JS to finish...")
-        time.sleep(delay)
-
-        html_content = driver.page_source
-
-        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        if verbose:
-            print(f"Success! Saved to {OUTPUT_FILE}")
-
-        return html_content
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    finally:
-        driver.quit()
-
-def ollama_parse_temperature(html_content, verbose=True):
-    if not html_content:
-        return
-
-    if verbose:
-        print("Processing HTML in chunks...")
-
-    chunk_counter = 1
-    for chunk in get_html_chunks(html_content, CHUNK_SIZE):
-        if verbose:
-            print(f"--- Analyzing Chunk {chunk_counter} ---")
-
-        prompt = (
-            f"Analyze the following text extracted from a webpage:\n"
-            f"\"{chunk}\"\n\n"
-            f"Task: Extract all temperature readings (Celsius or Fahrenheit) from the text.\n"
-            f"Rules:\n"
-            f"1. Extract the values exactly as they appear (e.g. '12°C', '72°F').\n"
-            f"2. Do NOT convert values."
-        )
-
-        response_str = ollama_call(
-            prompt,
-            format=TemperatureResponse.model_json_schema(),
-            verbose=verbose
-        )
-
-        if verbose:
-            print(f"Raw Ollama Response: {response_str}")
-
-        try:
-            result = TemperatureResponse.model_validate_json(response_str)
-
-            if len(result.temperatures) > 0:
-                print(f"\n✅ Temperature Found: {result.temperatures[0]}")
-                return result.model_dump()
-
-        except Exception as e:
-            print(f"Validation Error: {e}")
-
-        chunk_counter += 1
-
-    print("\n❌ No temperature data found.")
-    return {"temperatures": []}
+    await Processor(seeker, filter, adapter, publisher).start()
 
 if __name__ == "__main__":
-    verbose = False
-    html_content = save_rendered_html(verbose)
-    ollama_parse_temperature(html_content, verbose)
+    asyncio.run(main())

@@ -1,9 +1,5 @@
-from abc import ABC, abstractmethod
+from .async_items_handler import AsyncItemsHandler
 
-class Adapter(ABC):
-    def __init__(self):
-        print("Adapter init")
-
-    @abstractmethod
-    async def adapt(self):
-        print("Adapter -> adapt")
+class Adapter(AsyncItemsHandler):
+    def __init__(self) -> None:
+        super().__init__()

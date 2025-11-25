@@ -1,0 +1,148 @@
+from WeatherSeekerItem import WeatherSeekerItem
+import time
+from ollama_call import ollama_call
+from pydantic import BaseModel
+from typing import List
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from bs4 import BeautifulSoup
+from SFAP import Seeker
+from SFAP import TerminalPublisher
+from SFAP import TerminalPublisherItem
+import asyncio
+
+class TemperatureResponse(BaseModel):
+    temperatures: List[str]
+
+class WeatherSeeker(Seeker):
+    def __init__(
+        self,
+        URL_TO_SCRAPE: str,
+        HEADLESS: bool,
+        delay: float,
+        OUTPUT_FILE: str,
+        CHUNK_SIZE: int,
+        verbose: bool = True
+    ) -> None:
+        super().__init__()
+        self.URL_TO_SCRAPE = URL_TO_SCRAPE
+        self.HEADLESS = HEADLESS
+        self.delay = delay
+        self.OUTPUT_FILE = OUTPUT_FILE
+        self.CHUNK_SIZE = CHUNK_SIZE
+        self.verbose = verbose
+
+    async def read(self) -> None:
+        if self.verbose:
+            print(f"Seeker starting read for {self.URL_TO_SCRAPE}")
+
+        html_content = await asyncio.to_thread(self.save_rendered_html)
+
+        temperature_response = await asyncio.to_thread(
+            self.ollama_parse_temperature, html_content, self.verbose
+        )
+
+        if temperature_response and len(temperature_response.temperatures) > 0:
+            item = WeatherSeekerItem(temperature_response.temperatures[0])
+            if self.output_queue:
+                await self.output_queue.put(item)
+                if self.verbose:
+                    print(f"Queued item: {item}")
+        else:
+            if self.verbose:
+                print("No temperatures found.")
+
+    def get_html_chunks(self, html_content, chunk_size):
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        for redundant in soup(["script", "style", "svg", "path", "head", "meta", "noscript"]):
+            redundant.decompose()
+
+        clean_text = soup.get_text(separator="\n", strip=True)
+
+        for i in range(0, len(clean_text), chunk_size):
+            yield clean_text[i:i + chunk_size]
+
+    def save_rendered_html(self):
+        chrome_options = Options()
+        if self.HEADLESS:
+            chrome_options.add_argument("--headless")
+
+        if self.verbose:
+            print(f"HEADLESS: {self.HEADLESS}")
+
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+
+        if self.verbose:
+            print("Initializing Browser...")
+
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
+        html_content = ""
+        try:
+            if self.verbose:
+                print(f"Loading: {self.URL_TO_SCRAPE}")
+            driver.get(self.URL_TO_SCRAPE)
+
+            if self.verbose:
+                print(f"Waiting {self.delay} seconds for JS to finish...")
+            time.sleep(self.delay)
+
+            html_content = driver.page_source
+
+            with open(self.OUTPUT_FILE, "w", encoding="utf-8") as f:
+                f.write(html_content)
+
+            if self.verbose:
+                print(f"Success! Saved to {self.OUTPUT_FILE}")
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+        finally:
+            driver.quit()
+
+        return html_content
+
+    def ollama_parse_temperature(self, html_content, verbose=True):
+        if not html_content:
+            return None
+
+        if verbose:
+            print("Processing HTML in chunks...")
+
+        chunk_counter = 1
+        for chunk in self.get_html_chunks(html_content, self.CHUNK_SIZE):
+            if verbose:
+                print(f"--- Analyzing Chunk {chunk_counter} ---")
+
+            prompt = (
+                f"Analyze the following text extracted from a webpage:\n"
+                f"\"{chunk}\"\n\n"
+                f"Task: Extract all temperature readings (Celsius or Fahrenheit) from the text.\n"
+                f"Rules:\n"
+                f"1. Extract the values exactly as they appear (e.g. '12°C', '72°F').\n"
+                f"2. Do NOT convert values."
+            )
+            response_str = ollama_call(
+                prompt,
+                format=TemperatureResponse.model_json_schema(),
+                verbose=verbose)
+
+            if verbose:
+                print(f"Raw Ollama Response: {response_str}")
+
+            try:
+                result = TemperatureResponse.model_validate_json(response_str)
+                return result
+
+            except Exception as e:
+                print(f"Validation Error: {e}")
+
+            chunk_counter += 1
+
+        print("\n❌ No temperature data found.")
+        return TemperatureResponse(temperatures=[])

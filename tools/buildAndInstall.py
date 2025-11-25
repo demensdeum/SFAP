@@ -2,7 +2,7 @@ from commands import run
 import os
 
 run("""
-py -m mypy --python-version 3.9 src/SFAP
+py -m mypy --strict --python-version 3.9 src/SFAP
 """)
 
 os.chdir("src")
