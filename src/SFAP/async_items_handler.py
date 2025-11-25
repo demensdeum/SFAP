@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from typing import Optional, Any
 
 class AsyncItemsHandler:
@@ -35,5 +36,9 @@ class AsyncItemsHandler:
                     await self.output_queue.put(result)
                 self.input_queue.task_done()
 
-            except Exception as e:
+            except asyncio.TimeoutError:
+                continue
+
+            except Exception:
+                traceback.print_exc()
                 continue

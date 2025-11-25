@@ -6,7 +6,7 @@ from typing import Dict, Any, Union
 def ollama_call(
     user_prompt: str,
     format: Union[str, Dict[str, Any]],
-    verbose: bool = False,
+    verbose,
     model="gemma3:12b"
 ) -> str:
     LLM_PROMPT = user_prompt

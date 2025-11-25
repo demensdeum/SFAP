@@ -6,4 +6,5 @@ class WeatherTerminalPublisherAdapter(Adapter):
         super().__init__()
 
     async def process(self, item):
-        return TerminalPublisherItem(f"Temperature: {item.temperature}")
+        output = TerminalPublisherItem(f"Temperature: {item.temperature}")
+        return output

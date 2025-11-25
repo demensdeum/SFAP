@@ -1,7 +1,7 @@
-from .async_items_handler import AsyncItemsHandler
+from .filter import Filter
 from typing import Any
 
-class PassthroughFilter(AsyncItemsHandler):
+class PassthroughFilter(Filter):
     def __init__(self) -> None:
         super().__init__()
 

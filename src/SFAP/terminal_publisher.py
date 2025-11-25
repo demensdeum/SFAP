@@ -12,3 +12,4 @@ class TerminalPublisher(Publisher):
             print(item.terminalRepresentation())
         else:
             print(f"Sorry can't publish non TerminalPublisherItem into terminal item: {item}")
+        return item
