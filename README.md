@@ -1,4 +1,4 @@
-Seek Filter Adapt Publish (SFAP)
+# Seek Filter Adapt Publish (SFAP)
 
 Data Crawler for the AI Age
 
