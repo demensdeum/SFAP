@@ -7,7 +7,7 @@ class TerminalPublisher(Publisher):
         super().__init__()
         print("TerminalPublisher")
 
-    async def publish(self, items: list[PublisherItem]) -> None:
+    def publish(self, items: list[PublisherItem]) -> None:
         for item in items:
             if isinstance(item, TerminalPublisherItem):
                 print(item.terminalRepresentation())

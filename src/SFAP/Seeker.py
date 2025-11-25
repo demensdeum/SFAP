@@ -6,6 +6,6 @@ class Seeker(ABC):
         print("Seeker init")
 
     @abstractmethod
-    async def fetch(self) -> list[SeekerItem]:
+    async def seek(self) -> list[SeekerItem]:
         print("Seeker -> fetch")
         return []

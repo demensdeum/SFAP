@@ -6,5 +6,5 @@ class Publisher(ABC):
         print("Publisher init")
 
     @abstractmethod
-    async def publish(self, items: list[PublisherItem]) -> None:
+    def publish(self, items: list[PublisherItem]) -> None:
         print("Publisher -> publish")

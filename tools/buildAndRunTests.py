@@ -10,7 +10,7 @@ os.chdir("tests")
 os.chdir("Weather")
 
 delay = 10
-browser_headless_mode = "False"
+browser_headless_mode = "True"
 
 run(f"""
 python ./Weather.py https://www.accuweather.com/ accuweather-weather.html {delay}  {browser_headless_mode}
