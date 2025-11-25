@@ -1,10 +1,5 @@
-from abc import ABC, abstractmethod
-from .publisher_item import PublisherItem
+from .async_items_handler import AsyncItemsHandler
 
-class Publisher(ABC):
+class Publisher(AsyncItemsHandler):
     def __init__(self) -> None:
-        print("Publisher init")
-
-    @abstractmethod
-    def publish(self, items: list[PublisherItem]) -> None:
-        print("Publisher -> publish")
+        super().__init__()

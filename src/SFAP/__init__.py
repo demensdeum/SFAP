@@ -9,6 +9,7 @@ from .publish_channel import PublishChannel
 from .adapter import Adapter
 from .terminal_publisher import TerminalPublisher
 from .terminal_publisher_item import TerminalPublisherItem
+from .passthrough_filter import PassthroughFilter
 
 __all__ = [
     "PublisherItem",
@@ -22,4 +23,5 @@ __all__ = [
     "PublishChannel",
     "Adapter",
     "TerminalPublisher",
+    "PassthroughFilter"
 ]

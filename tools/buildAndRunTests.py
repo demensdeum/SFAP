@@ -9,7 +9,7 @@ python ./tools/buildAndInstall.py
 os.chdir("tests")
 os.chdir("Weather")
 
-delay = 10
+delay = 2
 browser_headless_mode = "True"
 
 run(f"""

@@ -1,9 +1,6 @@
-from abc import ABC, abstractmethod
+from .async_items_handler import AsyncItemsHandler
 
-class Filter(ABC):
+class Filter(AsyncItemsHandler):
     def __init__(self) -> None:
+        super().__init__()
         print("Filter init")
-
-    @abstractmethod
-    async def filter(self) -> None:
-        print("Filter -> filter")
