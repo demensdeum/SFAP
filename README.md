@@ -1,2 +1,2 @@
 # SFAP
-Seek Filter Adapt Publish - AI based crawler and publisher
+Seek Filter Adapt Publish - data crawler for AI age
