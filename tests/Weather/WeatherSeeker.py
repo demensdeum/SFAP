@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from SFAP import Seeker
 from dataclasses import dataclass
+from typing import Any
 
 @dataclass
 class WeatherRawHtmlItem:
@@ -48,7 +49,7 @@ class WeatherSeeker(Seeker):
             if self.verbose:
                 print("Failed to retrieve HTML content.")
 
-    def save_rendered_html(self):
+    def save_rendered_html(self) -> Any:
         chrome_options = Options()
         if self.HEADLESS:
             chrome_options.add_argument("--headless")

@@ -23,3 +23,6 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://github.com/demensdeum/SFAP"
+
+[tool.setuptools.package-data]
+SFAP = ["py.typed"]

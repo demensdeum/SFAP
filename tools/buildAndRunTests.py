@@ -3,8 +3,9 @@ import os
 
 run("""
 python ./tools/buildAndInstall.py
-"""
-)
+py -m mypy --install-types
+py -m mypy tests/Weather
+""")
 
 os.chdir("tests")
 os.chdir("Weather")

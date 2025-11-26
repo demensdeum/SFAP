@@ -5,17 +5,18 @@ from pydantic import BaseModel
 from SFAP import Filter, TerminalPublisherItem
 from ollama_call import ollama_call
 from WeatherSeekerItem import WeatherSeekerItem
+from typing import Any
 
 class TemperatureResponse(BaseModel):
     temperatures: List[str]
 
 class WeatherFilter(Filter):
-    def __init__(self, chunk_size, verbose: bool):
+    def __init__(self, chunk_size:int, verbose: bool) -> None:
         super().__init__()
         self.chunk_size = chunk_size
         self.verbose = verbose
 
-    async def process(self, item):
+    async def process(self, item: Any) -> Any:
         if self.verbose:
             print(f"Filter processing HTML from: {item.source_url}")
 
@@ -31,7 +32,7 @@ class WeatherFilter(Filter):
         else:
             return WeatherSeekerItem("Temperature not found in source.")
 
-    def get_html_chunks(self, html_content, chunk_size):
+    def get_html_chunks(self, html_content: Any, chunk_size: int) -> Any:
         soup = BeautifulSoup(html_content, 'html.parser')
 
         for redundant in soup(["script", "style", "svg", "path", "head", "meta", "noscript"]):
@@ -42,7 +43,7 @@ class WeatherFilter(Filter):
         for i in range(0, len(clean_text), chunk_size):
             yield clean_text[i:i + chunk_size]
 
-    def ollama_parse_temperature(self, html_content, verbose):
+    def ollama_parse_temperature(self, html_content: Any, verbose: bool) -> Any:
         if not html_content:
             return None
 
@@ -65,7 +66,7 @@ class WeatherFilter(Filter):
 
             response_str = ollama_call(
                 prompt,
-                format=TemperatureResponse.model_json_schema(),
+                format=TemperatureResponse.model_json_schema(), # type: ignore[attr-defined]
                 verbose=verbose
             )
 
@@ -73,7 +74,7 @@ class WeatherFilter(Filter):
                 print(f"Raw Ollama Response: {response_str}")
 
             try:
-                result = TemperatureResponse.model_validate_json(response_str)
+                result = TemperatureResponse.model_validate_json(response_str) # type: ignore[attr-defined]
                 if result.temperatures:
                     return result
             except Exception as e:

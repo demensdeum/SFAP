@@ -6,9 +6,9 @@ from typing import Dict, Any, Union
 def ollama_call(
     user_prompt: str,
     format: Union[str, Dict[str, Any]],
-    verbose,
-    model="gemma3:12b"
-) -> str:
+    verbose: bool,
+    model: str ="gemma3:12b"
+) -> Any:
     LLM_PROMPT = user_prompt
     if verbose:
         print(f"Current System Prompt: {LLM_PROMPT}")

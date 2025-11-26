@@ -12,7 +12,7 @@ delay = int(sys.argv[3])
 HEADLESS = sys.argv[4] == "True"
 verbose = False
 
-async def main():
+async def main() -> None:
     seeker = WeatherSeeker(
         URL_TO_SCRAPE,
         HEADLESS,
