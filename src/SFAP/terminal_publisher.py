@@ -4,8 +4,8 @@ from .terminal_publisher_item import TerminalPublisherItem
 from typing import Any
 
 class TerminalPublisher(Publisher):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, concurrency: int = 1) -> None:
+        super().__init__(concurrency)
 
     async def process(self, item: Any) -> Any:
         if isinstance(item, TerminalPublisherItem):

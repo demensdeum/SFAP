@@ -4,25 +4,23 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "SFAP"
-version = "1.0.0"
+version = "2.0.0"
 authors = [
   { name="Ilia Prokhorov", email="demensdeum@gmail.com" }
 ]
 description = "Seek Filter Adapt Publish"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "requests",   # Add your external dependencies here
-    "numpy",
 ]
 
 [project.urls]
 "Homepage" = "https://github.com/demensdeum/SFAP"
 
 [tool.setuptools.package-data]
-SFAP = ["py.typed"]
+"*" = ["py.typed"]

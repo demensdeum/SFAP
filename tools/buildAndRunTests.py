@@ -3,8 +3,8 @@ import os
 
 run("""
 python ./tools/buildAndInstall.py
-py -m mypy --install-types
-py -m mypy tests/Weather
+python -m mypy --install-types
+python -m mypy tests/Weather
 """)
 
 os.chdir("tests")
